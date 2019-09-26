@@ -37,10 +37,26 @@ char** parseCommand(char *command)
     return args;
 }
 
+int isConcurrent(char **args)
+{
+    //Find the last argument
+    int iter = 0;
+    while (args[iter] != NULL)
+        iter += 1;
+    //If this argument is "&", parent and child process will run concurrently
+    if (strcmp(args[iter - 1], "&") == 0)
+    {
+        args[iter - 1] = NULL;
+        return 1;
+    }
+    return 0;
+}
+
 int execCommand(char **args)
 {
     pid_t childID, waitID;
-    int status;
+    int exitStatus;
+    int concurrent = isConcurrent(args);
     //Fork a child process
     childID = fork();
     if (childID == 0)
@@ -55,10 +71,12 @@ int execCommand(char **args)
     else if (childID > 0)
     {
         //Inside parent process
+        if (concurrent == 1)
+            return 0;
         do
         {
-            //Wait for the child process to be killed
-            waitID = wait(&status);
+            //No "&" argument, wait for the child process to be killed
+            waitID = wait(&exitStatus);
         } while (waitID != childID);
     }
     else
