@@ -8,22 +8,23 @@
 #define MAX_LEN 256
 #define MAX_ARG 256
 
-char* readCommand()
+char* readCommand(void)
 {
     //Allocate memory
     char *command = (char*)malloc(MAX_LEN * sizeof(char));
     //Read command from standard input
     fgets(command, MAX_LEN, stdin);
-    //Remove '\n' at the end of the command string (because of the fgets())
+    //Remove '\n' at the end of the string (because of the fgets())
     command[strlen(command) - 1] = '\0';
     return command;
 }
 
-char** splitCommand(char *command, char sign[])
+char** parseCommand(char *command)
 {
     //Allocate memory
     char **args = (char**)malloc(MAX_ARG * sizeof(char*));
-    //Parse command by strtok()
+    //Parsing by strtok()
+    char sign[] = " ";
     char argsCount = 0;
     char *token = strtok(command, sign);
     while (token != NULL)
@@ -36,11 +37,11 @@ char** splitCommand(char *command, char sign[])
     return args;
 }
 
-int runCommand(char **args)
+int execCommand(char **args)
 {
     pid_t childID, waitID;
     int status;
-    //Fork a child process to execute command
+    //Fork a child process
     childID = fork();
     if (childID == 0)
     {
@@ -77,16 +78,21 @@ void mainLoop(void)
     {
         printf("HahaOS > ");
         command = readCommand();
-        args = splitCommand(command, " ");
-
-        if (strcmp(args[0], "exit") == 0)
+        if (strcmp(command, "") == 0)
         {
+            //Empty command
             free(command);
-            free(args);
+            continue;
+        }
+        else if (strcmp(command, "exit") == 0)
+        {
+            //Command "exit"
+            free(command);
             break;
         }
 
-        runCommand(args);
+        args = parseCommand(command);
+        execCommand(args);
         free(command);
         free(args);
     }
