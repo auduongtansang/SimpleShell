@@ -10,7 +10,7 @@
 
 char* readCommand()
 {
-    //Allocate mem
+    //Allocate memory
     char *command = (char*)malloc(MAX_LEN * sizeof(char));
     //Read command from standard input
     fgets(command, MAX_LEN, stdin);
@@ -21,7 +21,7 @@ char* readCommand()
 
 char** splitCommand(char *command, char sign[])
 {
-    //Allocate mem for argument array
+    //Allocate memory
     char **args = (char**)malloc(MAX_ARG * sizeof(char*));
     //Parse command by strtok()
     char argsCount = 0;
@@ -31,7 +31,7 @@ char** splitCommand(char *command, char sign[])
         args[argsCount++] = token;
         token = strtok(NULL, sign);
     }
-    //Add NULL at the end of the array
+    //Add NULL argument at the end
     args[argsCount] = NULL;
     return args;
 }
@@ -40,13 +40,14 @@ int runCommand(char **args)
 {
     pid_t childID, waitID;
     int status;
-    //Create a child process by fork(), to execute the splited command (args)
+    //Fork a child process to execute command
     childID = fork();
     if (childID == 0)
     {
         //Inside child process
-        execvp(args[0], args);  //execvp() will automatic kill the child process after done
-        //If execvp() failed, print error, then kill the child process manualy
+        //execvp() will kill the child process automatically after done
+        execvp(args[0], args);
+        //If execvp() failed, print error, then kill the child process manually
         perror("execvp() error");
         exit(-1);
     }
@@ -61,7 +62,7 @@ int runCommand(char **args)
     }
     else
     {
-        //Cannot create child process
+        //Cannot fork a child process
         perror("fork() error");
     }
     return 0;
@@ -79,7 +80,11 @@ void mainLoop(void)
         args = splitCommand(command, " ");
 
         if (strcmp(args[0], "exit") == 0)
+        {
+            free(command);
+            free(args);
             break;
+        }
 
         runCommand(args);
         free(command);
