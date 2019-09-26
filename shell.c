@@ -73,11 +73,14 @@ void mainLoop(void)
 {
     char *command = NULL;
     char **args = NULL;
+    char *history = (char*)malloc(MAX_LEN * sizeof(char));
+    history[0] = '\0';
     //Loop until command "exit" is received
     while (1)
     {
         printf("HahaOS > ");
         command = readCommand();
+
         if (strcmp(command, "") == 0)
         {
             //Empty command
@@ -90,12 +93,25 @@ void mainLoop(void)
             free(command);
             break;
         }
+        else if (strcmp(command, "!!") == 0)
+        {
+            //History feature
+            if (strcmp(history, "") == 0)
+            {
+                fprintf(stderr, "No history\n");
+                free(command);
+                continue;
+            }
+            strncpy(command, history, strlen(history) + 1);
+        }
 
+        strncpy(history, command, strlen(command) + 1);
         args = parseCommand(command);
         execCommand(args);
         free(command);
         free(args);
     }
+    free(history);
 }
 
 int main(void)
