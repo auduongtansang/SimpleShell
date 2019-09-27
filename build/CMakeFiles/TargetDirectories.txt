@@ -1,0 +1,3 @@
+/home/auduongtansang/VSCode/SimpleShell/build/CMakeFiles/rebuild_cache.dir
+/home/auduongtansang/VSCode/SimpleShell/build/CMakeFiles/shell.o.dir
+/home/auduongtansang/VSCode/SimpleShell/build/CMakeFiles/edit_cache.dir
