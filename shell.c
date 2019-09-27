@@ -2,6 +2,7 @@
 #include <stdlib.h>  //exit(), malloc()
 #include <string.h>  //strtok()
 #include <unistd.h>  //fork()
+#include <fcntl.h>  //open()
 #include <sys/wait.h>  //wait()
 #include <sys/types.h>  //pid_t
 
@@ -52,16 +53,83 @@ int isConcurrent(char **args)
     return 0;
 }
 
+int isRedirect(char **args, char *filePath)
+{
+    //Find any "<", ">", "2>" argument
+    int iter = 0;
+    while (args[iter] != NULL && strcmp(args[iter], "<") != 0 && strcmp(args[iter], ">") != 0 && strcmp(args[iter], "2>") != 0)
+        iter += 1;
+    //None of them was found
+    if (args[iter] == NULL)
+        return 0;
+    //If there is one, return filePath and message code
+    strncpy(filePath, args[iter + 1], strlen(args[iter + 1]) + 1);
+    if (strcmp(args[iter], "<") == 0)
+    {
+        //Redirect input
+        args[iter] = NULL;
+        return 1;
+    }
+    else if (strcmp(args[iter], ">") == 0)
+    {
+        //Redirect output
+        args[iter] = NULL;
+        return 2;
+    }
+    //Redirect error
+    args[iter] = NULL;
+    return 3;
+}
+
 int execCommand(char **args)
 {
-    pid_t childID, waitID;
     int exitStatus;
+    pid_t childID, waitID;
+
     int concurrent = isConcurrent(args);
+
+    char *reFile = (char*)malloc(MAX_LEN * sizeof(char));
+    int redirect = isRedirect(args, reFile);
+    int reFileDes = -1;
+
     //Fork a child process
     childID = fork();
     if (childID == 0)
     {
         //Inside child process
+        //Check redirect
+        switch (redirect)
+        {
+            case 1:
+            {
+                //Standard input
+                reFileDes = open(reFile, O_RDONLY);
+                free(reFile);
+                if (reFileDes < 0)
+                {
+                    fprintf(stderr, "No such file or directory\n");
+                    exit(-1);
+                }
+                dup2(reFileDes, 0);
+                break;
+            }
+            case 2:
+            {
+                //Standard output
+                reFileDes = open(reFile, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+                free(reFile);
+                dup2(reFileDes, 1);
+                break;
+            }
+            case 3:
+            {
+                //Standard error
+                reFileDes = open(reFile, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+                free(reFile);
+                dup2(reFileDes, 2);
+                break;
+            }
+        }
         //execvp() will kill the child process automatically after done
         execvp(args[0], args);
         //If execvp() failed, print error, then kill the child process manually
