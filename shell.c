@@ -40,17 +40,16 @@ char** parseCommand(char *command)
 
 int isConcurrent(char **args)
 {
-    //Find the last argument
+    //Find "&" argument
     int iter = 0;
-    while (args[iter] != NULL)
+    while (args[iter] != NULL && strcmp(args[iter], "&") != 0)
         iter += 1;
-    //If this argument is "&", parent and child process will run concurrently
-    if (strcmp(args[iter - 1], "&") == 0)
-    {
-        args[iter - 1] = NULL;
-        return 1;
-    }
-    return 0;
+    //Not found
+    if (args[iter] == NULL)
+        return 0;
+    //Found
+    args[iter] = NULL;
+    return 1;
 }
 
 int isRedirect(char **args, char *filePath)
@@ -59,10 +58,10 @@ int isRedirect(char **args, char *filePath)
     int iter = 0;
     while (args[iter] != NULL && strcmp(args[iter], "<") != 0 && strcmp(args[iter], ">") != 0 && strcmp(args[iter], "2>") != 0)
         iter += 1;
-    //None of them was found
+    //Not found
     if (args[iter] == NULL)
         return 0;
-    //If there is one, return filePath and message code
+    //Found
     strncpy(filePath, args[iter + 1], strlen(args[iter + 1]) + 1);
     if (strcmp(args[iter], "<") == 0)
     {
