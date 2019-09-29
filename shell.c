@@ -80,7 +80,27 @@ int isRedirect(char **args, char *filePath)
     return 3;
 }
 
-int execCommand(char **args)
+int isPipe(char **args, char **args1)
+{
+    //Find "|" argument
+    int iter = 0;
+    while (args[iter] != NULL && strcmp(args[iter], "|") != 0)
+        iter += 1;
+    //Not found
+    if (args[iter] == NULL)
+        return 0;
+    //Found
+    int oldIter = iter;
+    do
+    {
+        iter += 1;
+        args1[iter - oldIter - 1] = args[iter];
+    } while (args[iter] != NULL);
+    args[oldIter] = NULL;
+    return 1;
+}
+
+int execCommand(char **args, char **args1)
 {
     int exitStatus;
     pid_t childID, waitID;
@@ -90,6 +110,10 @@ int execCommand(char **args)
     char *reFile = (char*)malloc(MAX_LEN * sizeof(char));
     int redirect = isRedirect(args, reFile);
     int reFileDes = -1;
+
+    int pip = isPipe(args, args1);
+    int piFileDes[2];
+    pid_t piChildID;
 
     //Fork a child process
     childID = fork();
@@ -129,6 +153,55 @@ int execCommand(char **args)
                 break;
             }
         }
+        //Check pipe
+        if (pip == 1)
+        {
+            if (pipe(piFileDes) < 0)
+            {
+                //Cannot make pipe
+                perror("pipe() error");
+                exit(-1);
+            }
+            //Fork a child of the child process
+            piChildID = fork();
+            if (piChildID == 0)
+            {
+                //Inside the child of the child
+                //Make this process write to piFileDes[1]
+                dup2(piFileDes[1], 1);
+                close(piFileDes[0]);
+                //Execute command
+                execvp(args[0], args);
+                //Execute failed
+                perror("execvp() error");
+                exit(-1);
+            }
+            else if (piChildID > 0)
+            {
+                //Inside child process
+                do
+                {
+                    //Wait for piChildID process is done
+                    waitID = wait(&exitStatus);
+                } while (waitID != piChildID);
+                //Make this process read from piFileDes[0]
+                dup2(piFileDes[0], 0);
+                close(piFileDes[1]);
+                //Excute command
+                execvp(args1[0], args1);
+                //Excute failed
+                perror("execvp() error");
+                exit(-1);
+            }
+            else
+            {
+                //Cannot fork a child of the child process
+                perror("fork() error");
+                exit(-1);
+            }
+        }
+
+        //No pipe
         //execvp() will kill the child process automatically after done
         execvp(args[0], args);
         //If execvp() failed, print error, then kill the child process manually
@@ -150,6 +223,7 @@ int execCommand(char **args)
     {
         //Cannot fork a child process
         perror("fork() error");
+        exit(-1);
     }
     return 0;
 }
@@ -158,6 +232,7 @@ void mainLoop(void)
 {
     char *command = NULL;
     char **args = NULL;
+    char **args1 = (char**)malloc(MAX_ARG * sizeof(char*));
     char *history = (char*)malloc(MAX_LEN * sizeof(char));
     history[0] = '\0';
     //Loop until command "exit" is received
@@ -192,11 +267,12 @@ void mainLoop(void)
 
         strncpy(history, command, strlen(command) + 1);
         args = parseCommand(command);
-        execCommand(args);
+        execCommand(args, args1);
         free(command);
         free(args);
     }
     free(history);
+    free(args1);
 }
 
 int main(void)

@@ -31,7 +31,10 @@ Chương trình shell đơn giản cho Linux. Hỗ trợ pipe, IO redirect, th�
   %@^&#*&$ 2> error.txt
   ```
 4. Pipe:
-  - (Tính năng đang được phát triển)
+  - Hỗ trợ pipe, nhập "|" giữa hai lệnh để giao tiếp với nhau:
+  ```bash
+  cat text.txt | less
+  ```
   
 ## Giấy phép
   - Đây là chương trình đơn giản phục vụ học tập
