@@ -39,6 +39,10 @@ Chương trình shell đơn giản cho Linux. Hỗ trợ pipe, IO redirect, th�
   ```bash
   cat text.txt | less
   ```
+**Phố hợp redirect và concurrent:
+  ```bash
+  ping -i 2 -w 20 www.google.com.vn > output.txt &
+  ```
   
 ## Giấy phép
   - Đây là chương trình đơn giản phục vụ học tập
