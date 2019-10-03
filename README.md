@@ -39,7 +39,7 @@ Chương trình shell đơn giản cho Linux. Hỗ trợ pipe, IO redirect, th�
   ```bash
   cat text.txt | less
   ```
-**Phố hợp redirect và concurrent:
+**Kết hợp redirect và thực thi lệnh song song:**
   ```bash
   ping -i 2 -w 20 www.google.com.vn > output.txt &
   ```
