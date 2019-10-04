@@ -2,11 +2,15 @@
 Chương trình shell đơn giản cho Linux. Hỗ trợ pipe, IO redirect, thực thi lệnh song song, tự động lưu lại lịch sử
 
 ## Cài đặt
+  - Clone repository này bằng lệnh:
+  ```bash
+  git clone https://github.com/auduongtansang/SimpleShell.git
+  ```
   - Để build lại, hãy cài đặt cmake:
   ```bash
   sudo apt install cmake
   ```
-  - Sau đó, chuyển đến thư mục build và nhập lệnh:
+  - Sau đó, chuyển đến thư mục build trong repository vừ clone về và nhập lệnh:
   ```bash
   cmake ..
   make
