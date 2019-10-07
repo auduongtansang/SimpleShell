@@ -50,4 +50,4 @@ Chương trình shell đơn giản cho Linux. Hỗ trợ pipe, IO redirect, th�
   
 ## Giấy phép
   - Đây là chương trình đơn giản phục vụ học tập
-  - Không vì mục đích kính doanh
+  - Không vì mục đích kinh doanh
